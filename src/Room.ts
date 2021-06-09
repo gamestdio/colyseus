@@ -174,11 +174,13 @@ export abstract class Room<State= any, Metadata= any> {
   public async setMetadata(meta: Partial<Metadata>) {
     if (!this.listing.metadata) {
       this.listing.metadata = meta as Metadata;
-
     } else {
-      for (const field in meta) {
-        if (!meta.hasOwnProperty(field)) { continue; }
-        this.listing.metadata[field] = meta[field];
+      for (const [field, value] of Object.entries(meta)) {
+        if (typeof value === "object" && value !== null) {
+          this.listing.metadata[field as never] = Object.assign({}, this.listing.metadata[field as never], value);
+        } else {
+          this.listing.metadata[field as never] = value as never;
+        }
       }
 
       // `MongooseDriver` workaround: persit metadata mutations
